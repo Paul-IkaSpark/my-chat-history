@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>История чата</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f8; margin: 0; padding: 2rem; }
+    .chat-container { max-width: 800px; margin: auto; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 0 12px rgba(0,0,0,0.05); }
+    .message { margin-bottom: 1.5rem; }
+    .user { color: #000; background: #e0f7fa; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .assistant { color: #000; background: #e8f5e9; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .sender { font-weight: bold; margin-bottom: 0.5rem; }
+    h2 { text-align: center; margin-bottom: 2rem; }
+  </style>
+  <script src="chat.js"></script>
+</head>
+<body>
+  <div class="chat-container">
+    <h2 id="chat-title">История чата</h2>
+    <div id="chat"></div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const data = window.chatData;
+      if (!data || !data.messages) {
+        document.getElementById("chat").innerHTML = "<p>Чат не загружен.</p>";
+        return;
+      }
+
+      document.getElementById("chat-title").textContent = data.name || "История чата";
+
+      const container = document.getElementById("chat");
+
+      data.messages.forEach(message => {
+        const version = message.versions?.[0];
+        const role = version?.role || "assistant";
+        const isUser = role === "user";
+
+        let textContent = "";
+
+        // Поддержка разных структур
+        if (version?.content) {
+          textContent = version.content.filter(b => b.type === "text").map(b => b.text).join("\n");
+        } else if (version?.steps?.[0]?.content) {
+          textContent = version.steps[0].content.filter(b => b.type === "text").map(b => b.text).join("\n");
+        }
+
+        const div = document.createElement("div");
+        div.className = "message " + (isUser ? "user" : "assistant");
+        div.innerHTML = `
+          <div class="sender">${isUser ? "Вы" : "Модель"}</div>
+          <div>${textContent.replace(/\n/g, "<br>")}</div>
+        `;
+        container.appendChild(div);
+      });
+    });
+  </script>
+</body>
+</html>
