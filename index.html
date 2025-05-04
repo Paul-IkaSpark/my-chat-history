@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>История чатов</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      background: #f7f7f8;
+    }
+    .sidebar {
+      width: 260px;
+      background: #2c2f36;
+      color: white;
+      padding: 1rem;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 1.2rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    .chat-link {
+      cursor: pointer;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 6px;
+      background: #3a3f47;
+    }
+    .chat-link:hover {
+      background: #505861;
+    }
+    .content {
+      flex: 1;
+      padding: 2rem;
+    }
+    .chat-container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.05);
+    }
+    .message { margin-bottom: 1.5rem; }
+    .user { background: #e0f7fa; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .assistant { background: #e8f5e9; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .sender { font-weight: bold; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Чаты</h2>
+    <div id="chat-list"></div>
+  </div>
+  <div class="content">
+    <div class="chat-container">
+      <h2 id="chat-title">История чата</h2>
+      <div id="chat"></div>
+    </div>
+  </div>
+
+  <script>
+    const chatFiles = [
+      { file: "chat1.js", title: "Миф и вера" },
+      { file: "chat2.js", title: "Исторический спор" },
+      { file: "chat3.js", title: "Экзистенциальные вопросы" }
+    ];
+
+    const chatList = document.getElementById("chat-list");
+
+    chatFiles.forEach(chat => {
+      const div = document.createElement("div");
+      div.className = "chat-link";
+      div.textContent = chat.title;
+      div.onclick = () => loadChat(chat.file);
+      chatList.appendChild(div);
+    });
+
+    function loadChat(fileName) {
+      const oldScript = document.getElementById("chat-loader");
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement("script");
+      script.src = fileName;
+      script.id = "chat-loader";
+      script.onload = renderChat;
+      document.body.appendChild(script);
+    }
+
+    function renderChat() {
+      const data = window.chatData;
+      if (!data || !data.messages) return;
+
+      document.getElementById("chat-title").textContent = data.name || "История чата";
+      const container = document.getElementById("chat");
+      container.innerHTML = "";
+
+      data.messages.forEach(message => {
+        const version = message.versions?.[0];
+        const role = version?.role || "assistant";
+        const isUser = role === "user";
+
+        let textContent = "";
+
+        if (version?.content) {
+          textContent = version.content.filter(b => b.type === "text").map(b => b.text).join("\n");
+        } else if (version?.steps?.[0]?.content) {
+          textContent = version.steps[0].content.filter(b => b.type === "text").map(b => b.text).join("\n");
+        }
+
+        const div = document.createElement("div");
+        div.className = "message " + (isUser ? "user" : "assistant");
+        div.innerHTML = `
+          <div class="sender">${isUser ? "Вы" : "Модель"}</div>
+          <div>${textContent.replace(/\n/g, "<br>")}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Загружаем первый чат по умолчанию
+    loadChat(chatFiles[0].file);
+  </script>
+</body>
+</html>
