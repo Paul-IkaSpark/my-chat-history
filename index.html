@@ -114,7 +114,8 @@
       if (oldScript) oldScript.remove();
 
       const script = document.createElement("script");
-      script.src = fileName;
+      const version = Date.now(); // кеш-байпас
+      script.src = `${fileName}?v=${version}`;
       script.id = "chat-loader";
       script.onload = renderChat;
       document.body.appendChild(script);
@@ -151,6 +152,7 @@
       });
     }
 
+    // Загружаем первый чат при загрузке
     loadChat(chatFiles[0].file);
   </script>
 </body>
