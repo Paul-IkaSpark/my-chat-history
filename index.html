@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>История чата</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f8; margin: 0; padding: 2rem; }
+    .chat-container { max-width: 800px; margin: auto; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 0 12px rgba(0,0,0,0.05); }
+    .message { margin-bottom: 1.5rem; }
+    .user { color: #000; background: #e0f7fa; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .assistant { color: #000; background: #e8f5e9; padding: 1rem; border-radius: 10px; white-space: pre-wrap; }
+    .sender { font-weight: bold; margin-bottom: 0.5rem; }
+    h2 { text-align: center; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h2 id="chat-title">История чата</h2>
+    <div id="chat"></div>
+  </div>
+
+  <script>
+    async function loadChat() {
+      const response = await fetch('chat.json');
+      const data = await response.json();
+
+      document.getElementById("chat-title").textContent = data.name || "История чата";
+
+      const container = document.getElementById("chat");
+
+      data.messages.forEach(message => {
+        const version = message.versions[0];
+        const role = version.role;
+        const blocks = version.content || version.steps?.[0]?.content || [];
+        const text = blocks.filter(b => b.type === "text").map(b => b.text).join("\n");
+
+        const div = document.createElement("div");
+        div.className = "message " + (role === "user" ? "user" : "assistant");
+        div.innerHTML = `
+          <div class="sender">${role === "user" ? "Вы" : "Модель"}</div>
+          <div>${text.replace(/\n/g, "<br>")}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    loadChat();
+  </script>
+</body>
+</html>
